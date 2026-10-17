@@ -8,8 +8,10 @@ import { STATUS_HELP, STATUS_LABEL, statusColor, type BookingStatus } from "@/li
 import { unitTypeLabel } from "@/lib/units";
 import { dateTime, rm } from "@/lib/format";
 import { Chat } from "../../bookings/[id]/chat";
+import { DisputePanel } from "@/components/dispute-panel";
+import { loadDispute } from "@/lib/disputes";
 import { completeJob } from "./report/actions";
-import { acceptBooking, cancelAsContractor, declineBooking, scheduleBooking, startJob } from "../actions";
+import { acceptBooking, cancelAsContractor, declineBooking, replyToReview, scheduleBooking, startJob } from "../actions";
 
 export const metadata: Metadata = { title: "Booking" };
 
@@ -36,6 +38,8 @@ export default async function WorkBookingPage({ params, searchParams }: PageProp
     supabase.from("company_members").select("user_id, role, profiles(full_name)").eq("company_id", ws.company.id).eq("is_active", true),
   ]);
 
+  const { dispute, messages: disputeMessages } = await loadDispute(supabase, id);
+  const { data: review } = await supabase.from("reviews").select("id, rating, comment, company_reply").eq("booking_id", id).maybeSingle();
   const typeMap = new Map((types ?? []).map((t) => [t.code, t]));
   const status = b.status as BookingStatus;
   const needsQuote = b.booking_items.some((i) => typeMap.get(i.service_type_code)?.requires_quote);
@@ -152,6 +156,25 @@ export default async function WorkBookingPage({ params, searchParams }: PageProp
             ) : null}
           </Card>
         </>
+      ) : null}
+
+      {dispute ? (
+        <DisputePanel dispute={dispute} messages={disputeMessages} userId={user.id} customerId={b.customer_id} back={`/work/${b.id}`} />
+      ) : null}
+
+      {review ? (
+        <Card className="mb-6 space-y-2 text-sm">
+          <h2 className="font-semibold">Customer review · {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</h2>
+          {review.comment ? <p>{review.comment}</p> : <p className="text-zinc-500">No comment.</p>}
+          {review.company_reply ? (
+            <p className="border-l-2 border-zinc-300 pl-3 text-zinc-600">Your reply: {review.company_reply}</p>
+          ) : ws.isManager ? (
+            <form action={replyToReview.bind(null, b.id, review.id)} className="space-y-2">
+              <Input name="reply" required placeholder="Reply publicly to this review" aria-label="Reply" />
+              <Button type="submit" variant="secondary">Post reply</Button>
+            </form>
+          ) : null}
+        </Card>
       ) : null}
 
       <h2 className="mb-2 text-lg font-semibold">Services</h2>

@@ -92,3 +92,14 @@ export async function sendQuote(id: string, formData: FormData) {
   if (sendError) redirect(`/work/${id}/quote?error=${encodeURIComponent(sendError.message)}`);
   redirect(`/work/${id}`);
 }
+
+/** Public reply from the company to a customer's review. One reply per review. */
+export async function replyToReview(bookingId: string, reviewId: string, formData: FormData) {
+  const { supabase } = await requireUser();
+  const reply = String(formData.get("reply") ?? "").trim();
+  if (reply.length < 2) back(bookingId, "Write a reply first.");
+  const { data, error } = await supabase.from("reviews").update({ company_reply: reply }).eq("id", reviewId).is("company_reply", null).select("id");
+  if (error) back(bookingId, error.message);
+  if (!data || data.length === 0) back(bookingId, "This review already has a reply, or you cannot reply to it.");
+  back(bookingId);
+}

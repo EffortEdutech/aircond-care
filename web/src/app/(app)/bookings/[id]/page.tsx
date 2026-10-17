@@ -9,6 +9,8 @@ import Link from "next/link";
 import { acceptQuote, cancelBooking, confirmJob, declineQuote, leaveReview, reportProblem, startCheckout } from "../actions";
 import { sandboxEnabled } from "@/lib/payments/gateway";
 import { Chat } from "./chat";
+import { DisputePanel } from "@/components/dispute-panel";
+import { loadDispute } from "@/lib/disputes";
 
 export const metadata: Metadata = { title: "Booking" };
 
@@ -40,8 +42,9 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
       .from("unit_history")
       .select("report_id, unit_id, work_done, findings, refrigerant_type, gas_added_grams, readings, recommended_next_service_on, finalised_at")
       .eq("booking_id", id),
-    supabase.from("reviews").select("id, rating, comment").eq("booking_id", id).maybeSingle(),
+    supabase.from("reviews").select("id, rating, comment, company_reply").eq("booking_id", id).maybeSingle(),
   ]);
+  const { dispute, messages: disputeMessages } = await loadDispute(supabase, id);
   const { data: reportPhotos } = (reports ?? []).length
     ? await supabase.from("job_report_photos").select("id, job_report_id, storage_path, kind").in("job_report_id", reports!.map((r) => r.report_id!))
     : { data: [] as { id: string; job_report_id: string; storage_path: string; kind: string }[] };
@@ -169,11 +172,16 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
         </>
       ) : null}
 
+      {dispute ? (
+        <DisputePanel dispute={dispute} messages={disputeMessages} userId={user.id} customerId={user.id} back={`/bookings/${b.id}`} />
+      ) : null}
+
       {status === "closed" ? (
         review ? (
           <Card className="mb-6 text-sm">
             <p className="font-medium">Your review: {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</p>
             {review.comment ? <p className="text-zinc-600">{review.comment}</p> : null}
+            {review.company_reply ? <p className="mt-2 border-l-2 border-zinc-300 pl-3 text-zinc-600">Contractor reply: {review.company_reply}</p> : null}
           </Card>
         ) : (
           <Card className="mb-6 space-y-2">

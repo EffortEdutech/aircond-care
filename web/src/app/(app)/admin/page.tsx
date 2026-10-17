@@ -123,9 +123,12 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       <PageHeader
         title="Admin"
         action={
-          <Link href="/admin/payouts" className="text-sm font-medium text-sky-700 underline">
-            Payout batch
-          </Link>
+          <nav className="flex flex-wrap justify-end gap-x-4 gap-y-1 text-sm font-medium text-sky-700">
+            <Link href="/admin/disputes" className="underline">Disputes</Link>
+            <Link href="/admin/bookings" className="underline">Bookings</Link>
+            <Link href="/admin/reviews" className="underline">Reviews</Link>
+            <Link href="/admin/payouts" className="underline">Payout batch</Link>
+          </nav>
         }
       />
       {error ? <Notice kind="error">{error}</Notice> : null}
