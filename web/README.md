@@ -18,7 +18,7 @@ All data access runs as the signed-in user, so the database's row-level security
 cd web
 npm install
 cp .env.example .env.local      # then fill in the Supabase URL and publishable key
-npm run dev                     # http://localhost:3000
+npm run dev                     # http://localhost:3020
 ```
 
 Checks before pushing: `npm run lint`, `npm run typecheck`, `npm run build`.
