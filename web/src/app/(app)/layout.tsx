@@ -6,7 +6,11 @@ import { signOut } from "../(auth)/actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user } = await requireUser();
-  const [t, ws] = await Promise.all([getT(), getWorkspace(supabase, user.id)]);
+  const [t, ws, { count: unread }] = await Promise.all([
+    getT(),
+    getWorkspace(supabase, user.id),
+    supabase.from("notifications").select("id", { count: "exact", head: true }).eq("channel", "in_app").is("read_at", null),
+  ]);
   const link = "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800";
   return (
     <div className="flex flex-1 flex-col">
@@ -26,6 +30,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 Admin
               </Link>
             ) : null}
+            <Link href="/notifications" className={link} aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}>
+              Alerts
+              {unread ? <span className="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs text-white">{unread > 99 ? "99+" : unread}</span> : null}
+            </Link>
             <Link href="/contractors" className={link}>
               {t("findContractor")}
             </Link>

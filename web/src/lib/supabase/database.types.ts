@@ -1048,6 +1048,7 @@ export type Database = {
           error: string | null
           id: string
           payload: Json
+          read_at: string | null
           sent_at: string | null
           status: Database["public"]["Enums"]["notification_status"]
           template: string
@@ -1060,6 +1061,7 @@ export type Database = {
           error?: string | null
           id?: string
           payload?: Json
+          read_at?: string | null
           sent_at?: string | null
           status?: Database["public"]["Enums"]["notification_status"]
           template: string
@@ -1072,6 +1074,7 @@ export type Database = {
           error?: string | null
           id?: string
           payload?: Json
+          read_at?: string | null
           sent_at?: string | null
           status?: Database["public"]["Enums"]["notification_status"]
           template?: string
@@ -2119,7 +2122,7 @@ export type Database = {
         | "gateway_fee"
         | "payout"
         | "refund"
-      notification_channel: "whatsapp" | "push" | "email"
+      notification_channel: "whatsapp" | "push" | "email" | "in_app"
       notification_status: "queued" | "sent" | "failed"
       payment_method: "fpx" | "card" | "ewallet"
       payment_status:
@@ -2312,7 +2315,7 @@ export const Constants = {
         "payout",
         "refund",
       ],
-      notification_channel: ["whatsapp", "push", "email"],
+      notification_channel: ["whatsapp", "push", "email", "in_app"],
       notification_status: ["queued", "sent", "failed"],
       payment_method: ["fpx", "card", "ewallet"],
       payment_status: [
