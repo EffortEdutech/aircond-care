@@ -29,6 +29,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </form>
       </Card>
       <p className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+        <Link href="/forgot-password" className="underline">
+          Forgot password?
+        </Link>
+        {" · "}
         <Link href="/signup" className="font-medium text-sky-700 underline dark:text-sky-400">
           {t("signUp")}
         </Link>

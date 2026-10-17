@@ -5,7 +5,7 @@ import { createServiceClient } from "@/lib/supabase/admin";
  * payout for every closed booking that has paid money and no payout yet.
  * Gateway fees are not known in the sandbox, so they are recorded as zero for now.
  */
-export async function settleBookings(): Promise<{ closed: number; payouts: number; errors: string[] }> {
+export async function settleBookings(): Promise<{ closed: number; payouts: number; reminders: number; errors: string[] }> {
   const db = createServiceClient();
   const errors: string[] = [];
 
@@ -29,5 +29,8 @@ export async function settleBookings(): Promise<{ closed: number; payouts: numbe
       else payouts++;
     }
   }
-  return { closed: closed ?? 0, payouts, errors };
+
+  const { data: reminders, error: reminderError } = await db.rpc("send_due_reminders", { p_days_ahead: 14 });
+  if (reminderError) errors.push(`reminders: ${reminderError.message}`);
+  return { closed: closed ?? 0, payouts, reminders: reminders ?? 0, errors };
 }

@@ -18,7 +18,7 @@ export default async function UnitPage({ params, searchParams }: PageProps<"/uni
     supabase.from("units").select("*").eq("id", id).maybeSingle(),
     supabase.from("addresses").select("id, label, line1").order("is_default", { ascending: false }),
     supabase.from("unit_history").select("*").eq("unit_id", id).order("finalised_at", { ascending: false }),
-    supabase.from("service_reminders").select("id, service_type_code, due_on").eq("unit_id", id).eq("status", "pending").order("due_on"),
+    supabase.from("service_reminders").select("id, service_type_code, due_on").eq("unit_id", id).in("status", ["pending", "sent"]).order("due_on"),
     supabase.from("unit_access_grants").select("company_id, granted_at, companies(name)").eq("unit_id", id).is("revoked_at", null),
   ]);
   const { data: photoRows } = (history ?? []).length

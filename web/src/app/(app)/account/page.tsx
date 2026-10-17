@@ -51,6 +51,13 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
           <Button type="submit">{t("save")}</Button>
         </form>
       </Card>
+      <Card className="mt-6 space-y-2 text-sm">
+        <h2 className="font-semibold">Your data</h2>
+        <p className="text-zinc-600 dark:text-zinc-400">Download a copy of your profile, addresses, units, bookings and reviews.</p>
+        <a href="/account/export" className="inline-flex min-h-11 items-center rounded-lg border border-zinc-300 px-4 py-2 font-medium dark:border-zinc-700">
+          Download my data
+        </a>
+      </Card>
     </>
   );
 }

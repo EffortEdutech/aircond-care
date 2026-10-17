@@ -63,3 +63,22 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function requestPasswordReset(formData: FormData) {
+  const email = text(formData, "email");
+  if (!email) redirect(`/forgot-password?error=${encodeURIComponent("Enter your email address")}`);
+  const supabase = await createClient();
+  // The answer is the same whether or not the address has an account.
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${await siteUrl()}/auth/callback?next=/reset-password` });
+  redirect("/forgot-password?sent=1");
+}
+
+export async function setNewPassword(formData: FormData) {
+  const password = String(formData.get("password") ?? "");
+  if (password.length < 8) redirect(`/reset-password?error=${encodeURIComponent("Use at least 8 characters for the password")}`);
+  if (password !== String(formData.get("confirm") ?? "")) redirect(`/reset-password?error=${encodeURIComponent("The two passwords do not match")}`);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) redirect(`/reset-password?error=${encodeURIComponent(error.message)}`);
+  redirect("/units");
+}

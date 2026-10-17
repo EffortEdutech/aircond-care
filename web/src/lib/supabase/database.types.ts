@@ -2017,6 +2017,7 @@ export type Database = {
         Returns: undefined
       }
       auto_close_completed_bookings: { Args: never; Returns: number }
+      send_due_reminders: { Args: { p_days_ahead?: number }; Returns: number }
       can_access_unit: { Args: { p_unit: string }; Returns: boolean }
       contractor_can_see_customer: {
         Args: { p_customer: string }
