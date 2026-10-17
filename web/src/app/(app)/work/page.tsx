@@ -43,6 +43,9 @@ export default async function WorkPage() {
                   Earnings
                 </Link>
               ) : null}
+              <Link href="/work/plan" className="text-sky-700 underline">
+                Plan
+              </Link>
               <Link href="/work/company" className="text-sky-700 underline">
                 Company settings
               </Link>

@@ -24,6 +24,25 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
           <Field label={t("password")} hint="At least 8 characters">
             <Input name="password" type="password" autoComplete="new-password" minLength={8} required />
           </Field>
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name="accept_terms"
+              required
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-zinc-300 text-sky-700 focus:ring-sky-600"
+            />
+            <span>
+              I am at least 18 and I agree to the{" "}
+              <Link href="/terms" target="_blank" className="font-medium text-sky-700 underline dark:text-sky-400">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" target="_blank" className="font-medium text-sky-700 underline dark:text-sky-400">
+                Privacy Notice
+              </Link>
+              .
+            </span>
+          </label>
           <Button type="submit" className="w-full">
             {t("signUp")}
           </Button>

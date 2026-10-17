@@ -28,3 +28,15 @@ export async function updateProfile(formData: FormData) {
   });
   redirect("/account?saved=1");
 }
+
+export async function requestDeletion(formData: FormData) {
+  const { supabase } = await requireUser();
+  const { error } = await supabase.rpc("request_account_deletion", { p_reason: String(formData.get("reason") ?? "") });
+  redirect(error ? `/account?error=${encodeURIComponent(error.message)}` : "/account?deletion=requested");
+}
+
+export async function cancelDeletion() {
+  const { supabase } = await requireUser();
+  const { error } = await supabase.rpc("cancel_account_deletion");
+  redirect(error ? `/account?error=${encodeURIComponent(error.message)}` : "/account?deletion=cancelled");
+}

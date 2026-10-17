@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isLocale } from "@/lib/i18n";
+import { TERMS_VERSION } from "@/lib/legal";
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -43,12 +44,15 @@ export async function signUp(formData: FormData) {
   if (password.length < 8) {
     redirect(`/signup?error=${encodeURIComponent("Use at least 8 characters for the password")}`);
   }
+  if (formData.get("accept_terms") !== "on") {
+    redirect(`/signup?error=${encodeURIComponent("Please tick the box to accept the Terms of Service and Privacy Notice")}`);
+  }
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email: text(formData, "email"),
     password,
     options: {
-      data: { full_name: text(formData, "full_name") },
+      data: { full_name: text(formData, "full_name"), terms_version: TERMS_VERSION },
       emailRedirectTo: `${await siteUrl()}/auth/callback`,
     },
   });

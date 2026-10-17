@@ -1264,6 +1264,54 @@ export type Database = {
         }
         Relationships: []
       }
+      account_deletion_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          reason: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          reason?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          reason?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_deletion_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_deletion_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1275,6 +1323,8 @@ export type Database = {
           notify_push: boolean
           notify_whatsapp: boolean
           phone: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           updated_at: string
         }
         Insert: {
@@ -1287,6 +1337,8 @@ export type Database = {
           notify_push?: boolean
           notify_whatsapp?: boolean
           phone?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           updated_at?: string
         }
         Update: {
@@ -1299,6 +1351,8 @@ export type Database = {
           notify_push?: boolean
           notify_whatsapp?: boolean
           phone?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2017,6 +2071,12 @@ export type Database = {
         Returns: undefined
       }
       auto_close_completed_bookings: { Args: never; Returns: number }
+      request_account_deletion: { Args: { p_reason: string }; Returns: undefined }
+      cancel_account_deletion: { Args: never; Returns: undefined }
+      admin_process_deletion: {
+        Args: { p_id: string; p_approve: boolean; p_note: string }
+        Returns: string
+      }
       send_due_reminders: { Args: { p_days_ahead?: number }; Returns: number }
       can_access_unit: { Args: { p_unit: string }; Returns: boolean }
       contractor_can_see_customer: {

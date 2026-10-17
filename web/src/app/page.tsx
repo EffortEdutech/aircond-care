@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n";
+import { LegalFooterLinks } from "@/components/legal-page";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -26,6 +27,7 @@ export default async function Home() {
           {t("signIn")}
         </Link>
       </div>
+      <LegalFooterLinks />
     </main>
   );
 }
