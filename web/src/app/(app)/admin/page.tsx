@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/supabase/server";
 import { Button, Card, Input, Notice, PageHeader } from "@/components/ui";
-import { dateTime } from "@/lib/format";
+import { dateTime, rm } from "@/lib/format";
 import { reviewDocument, setCompanyStatus } from "./actions";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -32,6 +32,15 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
     const { data } = await supabase.storage.from("company-documents").createSignedUrls(paths, 600);
     (data ?? []).forEach((s) => s.path && s.signedUrl && links.set(s.path, s.signedUrl));
   }
+
+  const { data: recon } = await supabase.from("payment_reconciliation").select("payment_id, booking_id, status, amount_sen, refunded_sen, ledger_received_sen, ledger_refunded_sen, balanced");
+  const unbalanced = (recon ?? []).filter((r) => !r.balanced);
+  const { data: audits } = await supabase
+    .from("audit_log")
+    .select("id, action, created_at, meta")
+    .in("action", ["payment_amount_mismatch", "late_payment_refunded", "duplicate_payment_refunded", "refund_recorded"])
+    .order("created_at", { ascending: false })
+    .limit(15);
 
   const pending = (companies ?? []).filter((c) => c.status === "pending");
   const rest = (companies ?? []).filter((c) => c.status !== "pending");
@@ -117,6 +126,35 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       </p>
       {section(`Waiting for verification (${pending.length})`, pending)}
       {section("Other companies", rest)}
+
+      <section className="mb-8">
+        <h2 className="mb-2 text-lg font-semibold">Payments check</h2>
+        <Card className="space-y-2 text-sm">
+          <p>
+            {(recon ?? []).length} paid payment{(recon ?? []).length === 1 ? "" : "s"} checked against the ledger.{" "}
+            {unbalanced.length === 0 ? (
+              <strong className="text-emerald-700">All balanced.</strong>
+            ) : (
+              <strong className="text-red-700">{unbalanced.length} do not match.</strong>
+            )}
+          </p>
+          {unbalanced.map((r) => (
+            <p key={r.payment_id} className="text-red-700">
+              Payment {r.payment_id?.slice(0, 8)}: paid {rm(r.amount_sen)}, ledger {rm(r.ledger_received_sen)}; refunded {rm(r.refunded_sen)}, ledger {rm(r.ledger_refunded_sen)}
+            </p>
+          ))}
+          <h3 className="pt-2 font-medium">Recent money events</h3>
+          <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            {(audits ?? []).length === 0 ? <li className="py-1 text-zinc-500">None yet.</li> : null}
+            {(audits ?? []).map((a) => (
+              <li key={a.id} className="py-1">
+                {a.action.replaceAll("_", " ")} · {dateTime(a.created_at)}
+                {(a.meta as { gateway_refund_pending?: boolean } | null)?.gateway_refund_pending ? " · gateway refund still to be sent" : ""}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </section>
     </>
   );
 }

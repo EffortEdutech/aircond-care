@@ -1829,6 +1829,22 @@ export type Database = {
       }
     }
     Views: {
+      payment_reconciliation: {
+        Row: {
+          amount_sen: number | null
+          balanced: boolean | null
+          booking_id: string | null
+          gateway: string | null
+          gateway_ref: string | null
+          ledger_received_sen: number | null
+          ledger_refunded_sen: number | null
+          paid_at: string | null
+          payment_id: string | null
+          refunded_sen: number | null
+          status: Database["public"]["Enums"]["payment_status"] | null
+        }
+        Relationships: []
+      }
       booking_ledger_balance: {
         Row: {
           balance_sen: number | null
@@ -1945,6 +1961,25 @@ export type Database = {
       }
     }
     Functions: {
+      start_payment: {
+        Args: {
+          p_booking: string
+          p_gateway: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+        }
+        Returns: string
+      }
+      apply_payment_event: {
+        Args: {
+          p_amount_sen: number
+          p_event_id: string
+          p_gateway: string
+          p_outcome: string
+          p_payload?: Json
+          p_reference: string
+        }
+        Returns: string
+      }
       add_team_member: {
         Args: {
           p_company: string
