@@ -19,10 +19,24 @@ export async function loadDispute(supabase: SupabaseClient<Database>, bookingId:
     .limit(1)
     .maybeSingle();
   if (!dispute) return { dispute: null, messages: [] };
-  const { data: messages } = await supabase
+  const { data: rows } = await supabase
     .from("dispute_messages")
-    .select("id, author_id, body, created_at")
+    .select("id, author_id, body, created_at, attachment_paths")
     .eq("dispute_id", dispute.id)
     .order("created_at");
-  return { dispute, messages: messages ?? [] };
+  // Private evidence photos need short-lived links.
+  const paths = (rows ?? []).flatMap((m) => m.attachment_paths ?? []);
+  const urls = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data } = await supabase.storage.from("dispute-photos").createSignedUrls(paths, 3600);
+    (data ?? []).forEach((s) => s.path && s.signedUrl && urls.set(s.path, s.signedUrl));
+  }
+  const messages = (rows ?? []).map((m) => ({
+    id: m.id,
+    author_id: m.author_id,
+    body: m.body,
+    created_at: m.created_at,
+    photos: (m.attachment_paths ?? []).map((p) => urls.get(p)).filter((u): u is string => Boolean(u)),
+  }));
+  return { dispute, messages };
 }

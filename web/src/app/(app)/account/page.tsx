@@ -45,6 +45,12 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">Send me updates by</legend>
             <label className="flex items-center gap-3 text-base">
+              <input type="checkbox" name="notify_in_app" defaultChecked={profile?.notify_in_app ?? true} className={check} /> Alerts in the app
+            </label>
+            <p className="-mt-1 pl-8 text-xs text-zinc-500">
+              Untick to mute chat messages, service reminders and visit updates. Payment, refund and problem-report alerts always arrive.
+            </p>
+            <label className="flex items-center gap-3 text-base">
               <input type="checkbox" name="notify_email" defaultChecked={profile?.notify_email ?? true} className={check} /> Email
             </label>
             <label className="flex items-center gap-3 text-base">

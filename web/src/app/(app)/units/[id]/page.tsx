@@ -56,6 +56,17 @@ export default async function UnitPage({ params, searchParams }: PageProps<"/uni
         <Notice kind="info">
           Next service due:{" "}
           {reminders!.map((r) => `${r.service_type_code.replaceAll("_", " ")} on ${r.due_on}`).join(", ")}.{" "}
+          {history?.[0]?.company_id ? (
+            <>
+              <Link
+                href={`/book/${history[0].company_id}?unit=${id}&service=${encodeURIComponent(reminders![0].service_type_code)}`}
+                className="font-medium underline"
+              >
+                Book again with {history[0].company_name}
+              </Link>
+              {" · "}
+            </>
+          ) : null}
           <Link href="/contractors" className="font-medium underline">
             Find a contractor
           </Link>

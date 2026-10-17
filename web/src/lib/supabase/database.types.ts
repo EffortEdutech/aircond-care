@@ -1320,6 +1320,7 @@ export type Database = {
           id: string
           locale: string
           notify_email: boolean
+          notify_in_app: boolean
           notify_push: boolean
           notify_whatsapp: boolean
           phone: string | null
@@ -1334,6 +1335,7 @@ export type Database = {
           id: string
           locale?: string
           notify_email?: boolean
+          notify_in_app?: boolean
           notify_push?: boolean
           notify_whatsapp?: boolean
           phone?: string | null
@@ -1348,6 +1350,7 @@ export type Database = {
           id?: string
           locale?: string
           notify_email?: boolean
+          notify_in_app?: boolean
           notify_push?: boolean
           notify_whatsapp?: boolean
           phone?: string | null

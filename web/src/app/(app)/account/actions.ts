@@ -15,6 +15,7 @@ export async function updateProfile(formData: FormData) {
       full_name: String(formData.get("full_name") ?? "").trim(),
       phone: optional(formData, "phone"),
       locale: isLocale(locale) ? locale : "en",
+      notify_in_app: formData.get("notify_in_app") === "on",
       notify_email: formData.get("notify_email") === "on",
       notify_push: formData.get("notify_push") === "on",
       notify_whatsapp: formData.get("notify_whatsapp") === "on",

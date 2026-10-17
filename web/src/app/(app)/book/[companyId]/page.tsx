@@ -58,6 +58,12 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
 
   const action = createBooking.bind(null, companyId);
 
+  // "Book again" links preselect one unit, its service and its address.
+  const wantUnit = Array.isArray(sp.unit) ? sp.unit[0] : sp.unit;
+  const wantService = Array.isArray(sp.service) ? sp.service[0] : sp.service;
+  const wantedUnit = (units ?? []).find((u) => u.id === wantUnit);
+  const defaultAddress = served.find((a) => a.id === wantedUnit?.address_id)?.id ?? served[0]?.id;
+
   return (
     <>
       <PageHeader title={`Book ${company.name ?? ""}`} />
@@ -82,7 +88,7 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
       ) : (
         <form action={action} className="space-y-5">
           <Field label="Address for the visit" hint="Only addresses in this contractor's areas are shown. The call-out fee is added to your total.">
-            <Select name="address_id" defaultValue={served[0].id} required>
+            <Select name="address_id" defaultValue={defaultAddress} required>
               {served.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.label} · {a.line1} · call-out {rm(fee.get(a.service_area_id!) ?? 0)}
@@ -101,7 +107,11 @@ export default async function BookPage({ params, searchParams }: PageProps<"/boo
                   <p className="font-medium">{name}</p>
                   <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">{unitTypeLabel(u.unit_type)}</p>
                   {options.length > 0 ? (
-                    <Select name={`service_${u.id}`} defaultValue="" aria-label={`Service for ${name}`}>
+                    <Select
+                      name={`service_${u.id}`}
+                      defaultValue={u.id === wantedUnit?.id && options.some((o) => o.code === wantService) ? wantService : ""}
+                      aria-label={`Service for ${name}`}
+                    >
                       <option value="">Not this unit</option>
                       {options.map((o) => (
                         <option key={o.code} value={o.code}>
