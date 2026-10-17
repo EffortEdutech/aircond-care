@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/supabase/server";
 import { getT } from "@/lib/i18n";
+import { getWorkspace } from "@/lib/workspace";
 import { signOut } from "../(auth)/actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
-  const t = await getT();
+  const { supabase, user } = await requireUser();
+  const [t, ws] = await Promise.all([getT(), getWorkspace(supabase, user.id)]);
   const link = "rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800";
   return (
     <div className="flex flex-1 flex-col">
@@ -14,7 +15,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/units" className="font-semibold tracking-tight">
             {t("appName")}
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="flex flex-wrap items-center gap-1">
+            {ws.company ? (
+              <Link href="/work" className={`${link} bg-sky-50 text-sky-900 dark:bg-sky-950 dark:text-sky-100`}>
+                Workspace
+              </Link>
+            ) : null}
+            {ws.isAdmin ? (
+              <Link href="/admin" className={`${link} bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-100`}>
+                Admin
+              </Link>
+            ) : null}
             <Link href="/contractors" className={link}>
               {t("findContractor")}
             </Link>

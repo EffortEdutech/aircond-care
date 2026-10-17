@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
 
-const PROTECTED = ["/units", "/addresses", "/account", "/contractors", "/book", "/bookings"];
+const PROTECTED = ["/units", "/addresses", "/account", "/contractors", "/book", "/bookings", "/work", "/admin"];
 const AUTH_PAGES = ["/login", "/signup"];
 
 export async function proxy(request: NextRequest) {

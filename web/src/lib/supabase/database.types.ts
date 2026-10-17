@@ -1945,6 +1945,14 @@ export type Database = {
       }
     }
     Functions: {
+      add_team_member: {
+        Args: {
+          p_company: string
+          p_email: string
+          p_role: Database["public"]["Enums"]["company_role"]
+        }
+        Returns: undefined
+      }
       accept_quote: { Args: { p_quote: string }; Returns: undefined }
       admin_remove_review: {
         Args: { p_reason: string; p_review: string }

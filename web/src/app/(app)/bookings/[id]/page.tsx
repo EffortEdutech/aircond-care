@@ -5,7 +5,7 @@ import { Button, Card, Input, Notice, PageHeader } from "@/components/ui";
 import { CUSTOMER_CAN_CANCEL, STATUS_HELP, STATUS_LABEL, TIMELINE, statusColor, type BookingStatus } from "@/lib/bookings";
 import { unitTypeLabel } from "@/lib/units";
 import { dateTime, rm } from "@/lib/format";
-import { cancelBooking } from "../actions";
+import { acceptQuote, cancelBooking, declineQuote } from "../actions";
 import { Chat } from "./chat";
 
 export const metadata: Metadata = { title: "Booking" };
@@ -23,9 +23,15 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
     .maybeSingle();
   if (!b) notFound();
 
-  const [{ data: types }, { data: messages }] = await Promise.all([
+  const [{ data: types }, { data: messages }, { data: quotes }] = await Promise.all([
     supabase.from("service_types").select("code, name, requires_quote"),
     supabase.from("booking_messages").select("id, sender_id, body, created_at").eq("booking_id", id).order("created_at"),
+    supabase
+      .from("quotes")
+      .select("id, version, status, note, valid_until, quote_lines(id, description, quantity, line_total_sen, sort_order)")
+      .eq("booking_id", id)
+      .neq("status", "draft")
+      .order("version", { ascending: false }),
   ]);
   const typeMap = new Map((types ?? []).map((t) => [t.code, t]));
   const status = b.status as BookingStatus;
@@ -97,6 +103,47 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
           </li>
         </ul>
       </Card>
+
+      {(quotes ?? []).length > 0 ? (
+        <>
+          <h2 className="mb-2 text-lg font-semibold">Quote</h2>
+          {quotes!.map((q) => (
+            <Card key={q.id} className="mb-3 text-sm">
+              <p className="mb-1 font-medium">
+                Version {q.version} · {q.status}
+                {q.valid_until && q.status === "sent" ? ` · valid until ${dateTime(q.valid_until)}` : ""}
+              </p>
+              <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {[...q.quote_lines].sort((a, c) => (a.sort_order ?? 0) - (c.sort_order ?? 0)).map((l) => (
+                  <li key={l.id} className="flex justify-between py-1">
+                    <span>
+                      {l.description} × {l.quantity}
+                    </span>
+                    <span>{rm(l.line_total_sen)}</span>
+                  </li>
+                ))}
+                <li className="flex justify-between py-1 font-semibold">
+                  <span>Quote total</span>
+                  <span>{rm(q.quote_lines.reduce((sum, l) => sum + (l.line_total_sen ?? 0), 0))}</span>
+                </li>
+              </ul>
+              {q.note ? <p className="mt-1 text-zinc-500">{q.note}</p> : null}
+              {q.status === "sent" ? (
+                <div className="mt-3 flex gap-2">
+                  <form action={acceptQuote.bind(null, b.id, q.id)}>
+                    <Button type="submit">Accept quote</Button>
+                  </form>
+                  <form action={declineQuote.bind(null, b.id, q.id)}>
+                    <Button type="submit" variant="secondary">
+                      Decline
+                    </Button>
+                  </form>
+                </div>
+              ) : null}
+            </Card>
+          ))}
+        </>
+      ) : null}
 
       <h2 className="mb-2 text-lg font-semibold">Visit</h2>
       <Card className="mb-6 space-y-1 text-sm">

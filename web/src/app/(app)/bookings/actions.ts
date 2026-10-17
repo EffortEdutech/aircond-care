@@ -10,3 +10,17 @@ export async function cancelBooking(id: string, formData: FormData) {
   if (error) redirect(`/bookings/${id}?error=${encodeURIComponent(error.message)}`);
   redirect(`/bookings/${id}`);
 }
+
+export async function acceptQuote(bookingId: string, quoteId: string) {
+  const { supabase } = await requireUser();
+  const { error } = await supabase.rpc("accept_quote", { p_quote: quoteId });
+  if (error) redirect(`/bookings/${bookingId}?error=${encodeURIComponent(error.message)}`);
+  redirect(`/bookings/${bookingId}`);
+}
+
+export async function declineQuote(bookingId: string, quoteId: string) {
+  const { supabase } = await requireUser();
+  const { error } = await supabase.rpc("decline_quote", { p_quote: quoteId });
+  if (error) redirect(`/bookings/${bookingId}?error=${encodeURIComponent(error.message)}`);
+  redirect(`/bookings/${bookingId}`);
+}
