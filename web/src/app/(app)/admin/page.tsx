@@ -127,6 +127,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
             <Link href="/admin/disputes" className="underline">Disputes</Link>
             <Link href="/admin/bookings" className="underline">Bookings</Link>
             <Link href="/admin/reviews" className="underline">Reviews</Link>
+            <Link href="/admin/users" className="underline">Users</Link>
             <Link href="/admin/payouts" className="underline">Payout batch</Link>
           </nav>
         }

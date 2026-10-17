@@ -69,7 +69,10 @@ export async function requestPasswordReset(formData: FormData) {
   if (!email) redirect(`/forgot-password?error=${encodeURIComponent("Enter your email address")}`);
   const supabase = await createClient();
   // The answer is the same whether or not the address has an account.
-  await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${await siteUrl()}/auth/callback?next=/reset-password` });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${await siteUrl()}/auth/callback?next=/reset-password` });
+  if (error && (error.status === 429 || /rate limit/i.test(error.message))) {
+    redirect(`/forgot-password?error=${encodeURIComponent("Too many reset emails were sent recently. Please try again in about an hour, or ask support to set a temporary password.")}`);
+  }
   redirect("/forgot-password?sent=1");
 }
 

@@ -21,6 +21,10 @@ export default async function ForgotPasswordPage({ searchParams }: PageProps<"/f
           <Button type="submit" className="w-full">Send reset link</Button>
         </form>
       </Card>
+      <p className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        Reset emails are limited while the service is in testing, so a message may be delayed or not arrive. If you do not receive one,
+        contact support and we will set a temporary password for you.
+      </p>
       <p className="mt-4 text-center text-sm">
         <Link href="/login" className="font-medium text-sky-700 underline dark:text-sky-400">Back to sign in</Link>
       </p>
