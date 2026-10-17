@@ -1,0 +1,28 @@
+# Local development database. Plain Postgres 16 with stand-ins for Supabase's roles and auth.
+# Start: docker compose up -d      Reset: docker compose down -v && docker compose up -d
+# Connect: postgresql://postgres:postgres@127.0.0.1:54322/marketplace
+name: aircond-marketplace
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: marketplace
+    ports:
+      # Bound to this computer only. 54322 matches the Supabase CLI's local port.
+      - "127.0.0.1:${DB_PORT:-54322}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./supabase:/workspace:ro
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d marketplace"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  db-data:
