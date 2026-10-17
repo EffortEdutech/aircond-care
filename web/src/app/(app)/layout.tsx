@@ -15,6 +15,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             {t("appName")}
           </Link>
           <nav className="flex items-center gap-1">
+            <Link href="/contractors" className={link}>
+              {t("findContractor")}
+            </Link>
+            <Link href="/bookings" className={link}>
+              {t("bookings")}
+            </Link>
             <Link href="/units" className={link}>
               {t("units")}
             </Link>

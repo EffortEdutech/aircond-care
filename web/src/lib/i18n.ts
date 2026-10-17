@@ -31,6 +31,8 @@ const en = {
   history: "Service history",
   noHistory: "No service history yet. Completed jobs will appear here.",
   checkEmail: "Check your email to confirm your account, then sign in.",
+  findContractor: "Find a contractor",
+  bookings: "Bookings",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -62,6 +64,8 @@ const ms: Partial<Record<MessageKey, string>> = {
   history: "Sejarah servis",
   noHistory: "Belum ada sejarah servis. Kerja yang siap akan dipaparkan di sini.",
   checkEmail: "Semak e-mel anda untuk mengesahkan akaun, kemudian log masuk.",
+  findContractor: "Cari kontraktor",
+  bookings: "Tempahan",
 };
 
 const zh: Partial<Record<MessageKey, string>> = {
@@ -89,6 +93,8 @@ const zh: Partial<Record<MessageKey, string>> = {
   history: "保养记录",
   noHistory: "还没有保养记录。完成的工作会显示在这里。",
   checkEmail: "请查看电子邮件确认账户，然后登录。",
+  findContractor: "寻找承包商",
+  bookings: "预约",
 };
 
 const dictionaries: Record<Locale, Partial<Record<MessageKey, string>>> = { en, ms, zh };
