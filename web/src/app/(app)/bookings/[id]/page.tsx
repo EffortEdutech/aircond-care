@@ -6,7 +6,7 @@ import { CUSTOMER_CAN_CANCEL, STATUS_HELP, STATUS_LABEL, TIMELINE, statusColor, 
 import { unitTypeLabel } from "@/lib/units";
 import { dateTime, rm } from "@/lib/format";
 import Link from "next/link";
-import { acceptQuote, cancelBooking, declineQuote, startCheckout } from "../actions";
+import { acceptQuote, cancelBooking, confirmJob, declineQuote, leaveReview, reportProblem, startCheckout } from "../actions";
 import { sandboxEnabled } from "@/lib/payments/gateway";
 import { Chat } from "./chat";
 
@@ -35,6 +35,21 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
       .neq("status", "draft")
       .order("version", { ascending: false }),
   ]);
+  const [{ data: reports }, { data: review }] = await Promise.all([
+    supabase
+      .from("unit_history")
+      .select("report_id, unit_id, work_done, findings, refrigerant_type, gas_added_grams, readings, recommended_next_service_on, finalised_at")
+      .eq("booking_id", id),
+    supabase.from("reviews").select("id, rating, comment").eq("booking_id", id).maybeSingle(),
+  ]);
+  const { data: reportPhotos } = (reports ?? []).length
+    ? await supabase.from("job_report_photos").select("id, job_report_id, storage_path, kind").in("job_report_id", reports!.map((r) => r.report_id!))
+    : { data: [] as { id: string; job_report_id: string; storage_path: string; kind: string }[] };
+  const photoUrls = new Map<string, string>();
+  if ((reportPhotos ?? []).length > 0) {
+    const { data } = await supabase.storage.from("job-report-photos").createSignedUrls(reportPhotos!.map((p) => p.storage_path), 3600);
+    (data ?? []).forEach((x) => x.path && x.signedUrl && photoUrls.set(x.path, x.signedUrl));
+  }
   const { data: payments } = await supabase
     .from("payments")
     .select("id, status, amount_sen, refunded_sen, method")
@@ -106,6 +121,76 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
             View receipt
           </Link>
         </p>
+      ) : null}
+
+      {status === "completed" ? (
+        <Card className="mb-6 space-y-3">
+          <h2 className="font-semibold">Is the work done?</h2>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Check the report below. Confirm to release payment to the contractor, or report a problem. If you do nothing, the job is confirmed automatically after 48 hours.
+          </p>
+          <form action={confirmJob.bind(null, b.id)}>
+            <Button type="submit">Confirm job is done</Button>
+          </form>
+          <form action={reportProblem.bind(null, b.id)} className="space-y-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+            <Input name="reason" placeholder="What is wrong?" aria-label="Problem" />
+            <Button type="submit" variant="danger">
+              Report a problem
+            </Button>
+          </form>
+        </Card>
+      ) : null}
+
+      {(reports ?? []).length > 0 ? (
+        <>
+          <h2 className="mb-2 text-lg font-semibold">Job report</h2>
+          {reports!.map((r) => {
+            const rd = (r.readings ?? {}) as { supply_temp_c?: number; return_temp_c?: number; amps?: number };
+            return (
+              <Card key={r.report_id} className="mb-3 space-y-1 text-sm">
+                <p><strong>Work done:</strong> {r.work_done}</p>
+                {r.findings ? <p><strong>Findings:</strong> {r.findings}</p> : null}
+                <p>
+                  <strong>Gas:</strong> {r.refrigerant_type ?? "n/a"}
+                  {r.gas_added_grams ? `, ${r.gas_added_grams} g added` : ""} · supply {rd.supply_temp_c ?? "-"}°C, return {rd.return_temp_c ?? "-"}°C
+                </p>
+                {r.recommended_next_service_on ? <p><strong>Next service:</strong> {r.recommended_next_service_on}</p> : null}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {(reportPhotos ?? []).filter((p) => p.job_report_id === r.report_id).map((p) =>
+                    photoUrls.get(p.storage_path) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={p.id} src={photoUrls.get(p.storage_path)} alt={`${p.kind} photo`} className="rounded-lg border border-zinc-200 dark:border-zinc-800" />
+                    ) : null,
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </>
+      ) : null}
+
+      {status === "closed" ? (
+        review ? (
+          <Card className="mb-6 text-sm">
+            <p className="font-medium">Your review: {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</p>
+            {review.comment ? <p className="text-zinc-600">{review.comment}</p> : null}
+          </Card>
+        ) : (
+          <Card className="mb-6 space-y-2">
+            <h2 className="font-semibold">How was the service?</h2>
+            <form action={leaveReview.bind(null, b.id)} className="space-y-2">
+              <Select name="rating" aria-label="Rating" defaultValue="5" className="max-w-40">
+                <option value="5">5 stars</option>
+                <option value="4">4 stars</option>
+                <option value="3">3 stars</option>
+                <option value="2">2 stars</option>
+                <option value="1">1 star</option>
+              </Select>
+              <Input name="comment" placeholder="Comment (optional)" aria-label="Comment" />
+              <Button type="submit">Send review</Button>
+            </form>
+          </Card>
+        )
       ) : null}
 
       <h2 className="mb-2 text-lg font-semibold">Services</h2>

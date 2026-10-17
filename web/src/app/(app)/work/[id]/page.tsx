@@ -8,6 +8,7 @@ import { STATUS_HELP, STATUS_LABEL, statusColor, type BookingStatus } from "@/li
 import { unitTypeLabel } from "@/lib/units";
 import { dateTime, rm } from "@/lib/format";
 import { Chat } from "../../bookings/[id]/chat";
+import { completeJob } from "./report/actions";
 import { acceptBooking, cancelAsContractor, declineBooking, scheduleBooking, startJob } from "../actions";
 
 export const metadata: Metadata = { title: "Booking" };
@@ -20,13 +21,14 @@ export default async function WorkBookingPage({ params, searchParams }: PageProp
   const { data: b } = await supabase
     .from("bookings")
     .select(
-      "id, booking_no, status, customer_id, company_id, fault_description, customer_notes, requested_start, scheduled_start, scheduled_end, assigned_to, subtotal_sen, call_out_fee_sen, total_sen, address_snapshot, cancel_reason, booking_items(id, service_type_code, quantity, unit_price_sen, line_total_sen, units(nickname, brand, model, unit_type))",
+      "id, booking_no, status, customer_id, company_id, fault_description, customer_notes, requested_start, scheduled_start, scheduled_end, assigned_to, subtotal_sen, call_out_fee_sen, total_sen, address_snapshot, cancel_reason, booking_items(id, unit_id, service_type_code, quantity, unit_price_sen, line_total_sen, units(nickname, brand, model, unit_type))",
     )
     .eq("id", id)
     .maybeSingle();
   if (!b || !ws.company || b.company_id !== ws.company.id) notFound();
 
-  const [{ data: types }, { data: messages }, { data: customer }, { data: quotes }, { data: team }] = await Promise.all([
+  const [{ data: reports }, { data: types }, { data: messages }, { data: customer }, { data: quotes }, { data: team }] = await Promise.all([
+    supabase.from("job_reports").select("id, unit_id, status, supersedes_id").eq("booking_id", id),
     supabase.from("service_types").select("code, name, requires_quote"),
     supabase.from("booking_messages").select("id, sender_id, body, created_at").eq("booking_id", id).order("created_at"),
     supabase.from("profiles").select("full_name, phone").eq("id", b.customer_id).maybeSingle(),
@@ -115,8 +117,41 @@ export default async function WorkBookingPage({ params, searchParams }: PageProp
         </Card>
       ) : null}
 
-      {status === "in_progress" ? (
-        <Notice kind="info">Job reports, photos and sign-off arrive in Sprint 5. The job can be completed once every unit has a final report.</Notice>
+      {["in_progress", "completed", "closed", "disputed"].includes(status) ? (
+        <>
+          <h2 className="mb-2 text-lg font-semibold">Job reports</h2>
+          <Card className="mb-6 space-y-3">
+            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              {[...new Map(b.booking_items.map((i) => [i.unit_id, i])).values()].map((i) => {
+                const unitReports = (reports ?? []).filter((r) => r.unit_id === i.unit_id);
+                const hasFinal = unitReports.some((r) => r.status === "final" && r.supersedes_id === null);
+                const hasDraft = unitReports.some((r) => r.status === "draft");
+                const u = i.units;
+                return (
+                  <li key={i.unit_id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                    <span>
+                      {u ? u.nickname || [u.brand, u.model].filter(Boolean).join(" ") || unitTypeLabel(u.unit_type) : "Unit"}
+                      <span className={`block text-xs ${hasFinal ? "text-emerald-700" : "text-amber-700"}`}>
+                        {hasFinal ? (hasDraft ? "Final · correction in draft" : "Final") : hasDraft ? "Draft" : "Not started"}
+                      </span>
+                    </span>
+                    {(mine || ws.isManager) || hasFinal ? (
+                      <Link href={`/work/${b.id}/report/${i.unit_id}`} className="font-medium text-sky-700 underline">
+                        {hasFinal ? "View" : hasDraft ? "Continue" : "Start report"}
+                      </Link>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+            {status === "in_progress" && (mine || ws.isManager) ? (
+              <form action={completeJob.bind(null, b.id)}>
+                <Button type="submit">Mark job completed</Button>
+                <p className="mt-1 text-xs text-zinc-500">Every unit needs a final report first. The customer then has 48 hours to confirm or report a problem.</p>
+              </form>
+            ) : null}
+          </Card>
+        </>
       ) : null}
 
       <h2 className="mb-2 text-lg font-semibold">Services</h2>

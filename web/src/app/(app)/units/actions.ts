@@ -78,3 +78,9 @@ export async function setNameplatePhoto(unitId: string, path: string) {
   revalidatePath(`/units/${unitId}`);
   return { error: null };
 }
+
+export async function revokeAccess(unitId: string, companyId: string) {
+  const { supabase } = await requireUser();
+  const { error } = await supabase.rpc("revoke_unit_access", { p_unit: unitId, p_company: companyId });
+  redirect(error ? `/units/${unitId}?error=${encodeURIComponent(error.message)}` : `/units/${unitId}`);
+}

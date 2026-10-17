@@ -1980,6 +1980,10 @@ export type Database = {
         }
         Returns: string
       }
+      admin_mark_payouts_paid: {
+        Args: { p_ids: string[]; p_reference: string }
+        Returns: number
+      }
       add_team_member: {
         Args: {
           p_company: string

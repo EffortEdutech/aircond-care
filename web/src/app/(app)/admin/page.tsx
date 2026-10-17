@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/supabase/server";
 import { Button, Card, Input, Notice, PageHeader } from "@/components/ui";
@@ -119,7 +120,14 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
   return (
     <>
-      <PageHeader title="Admin" />
+      <PageHeader
+        title="Admin"
+        action={
+          <Link href="/admin/payouts" className="text-sm font-medium text-sky-700 underline">
+            Payout batch
+          </Link>
+        }
+      />
       {error ? <Notice kind="error">{error}</Notice> : null}
       <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
         Verify contractors by checking their documents. Disputes and payouts are added in later sprints.

@@ -37,9 +37,16 @@ export default async function WorkPage() {
         title={ws.isManager ? "Bookings" : "My jobs"}
         action={
           ws.isManager ? (
-            <Link href="/work/company" className="text-sm font-medium text-sky-700 underline">
-              Company settings
-            </Link>
+            <span className="flex gap-3 text-sm font-medium">
+              {ws.company.role === "owner" ? (
+                <Link href="/work/earnings" className="text-sky-700 underline">
+                  Earnings
+                </Link>
+              ) : null}
+              <Link href="/work/company" className="text-sky-700 underline">
+                Company settings
+              </Link>
+            </span>
           ) : undefined
         }
       />
