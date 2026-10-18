@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { login, logout, USERS } from "./helpers";
 
-// One booking followed through request -> accept -> schedule -> pay (sandbox).
+// One booking followed through request -> accept -> pay (sandbox) -> schedule.
 // Runs in order and shares state. It creates a real booking in the test project each run.
 // Not covered here: the technician's job report (needs photos) and the confirm/dispute steps;
 // follow the manual checklist for those.
@@ -28,21 +28,13 @@ test.describe.serial("booking journey (sandbox payment)", () => {
     bookingUrl = new URL(page.url()).pathname;
   });
 
-  test("contractor accepts and schedules it", async ({ page }) => {
+  test("contractor accepts at the listed price", async ({ page }) => {
     test.skip(!bookingUrl, "no booking from the previous step");
     const id = bookingUrl.split("/").pop();
     await login(page, USERS.owner);
     await page.goto(`/work/${id}`);
-
-    const accept = page.getByRole("button", { name: /Accept at listed price/ });
-    if (await accept.isVisible()) await accept.click();
-
-    await page.goto(`/work/${id}`);
-    const start = page.locator('input[name="start"]');
-    await start.fill(new Date(Date.now() + 2 * 86400_000).toISOString().slice(0, 16));
-    await page.locator('select[name="technician"]').selectOption({ index: 1 });
-    await page.getByRole("button", { name: "Confirm schedule" }).click();
-    await expect(page.getByText(/scheduled/i).first()).toBeVisible();
+    await page.getByRole("button", { name: /Accept at listed price/ }).click();
+    await expect(page.getByText(/pay|awaiting|accepted/i).first()).toBeVisible();
   });
 
   test("customer pays with the sandbox gateway", async ({ page }) => {
@@ -54,6 +46,19 @@ test.describe.serial("booking journey (sandbox payment)", () => {
     await page.getByRole("button", { name: "Pay successfully" }).click();
     await expect(page).toHaveURL(new RegExp(bookingUrl));
     await expect(page.getByText(/paid/i).first()).toBeVisible();
+  });
+
+  test("contractor schedules the visit after payment", async ({ page }) => {
+    test.skip(!bookingUrl, "no booking from the previous step");
+    const id = bookingUrl.split("/").pop();
+    await login(page, USERS.owner);
+    await page.goto(`/work/${id}`);
+
+    const start = page.locator('input[name="start"]');
+    await start.fill(new Date(Date.now() + 2 * 86400_000).toISOString().slice(0, 16));
+    await page.locator('select[name="technician"]').selectOption({ index: 1 });
+    await page.getByRole("button", { name: "Confirm schedule" }).click();
+    await expect(page.getByText(/scheduled/i).first()).toBeVisible();
   });
 
   test("another customer cannot open this booking", async ({ page }) => {
