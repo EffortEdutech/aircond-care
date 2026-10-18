@@ -150,13 +150,13 @@ begin
   exception when others then null; end;
 
   begin
-    insert into public.ledger_entries (booking_id, company_id, kind, amount_sen)
+    insert into public.ledger_entries (booking_id, company_id, entry_type, amount_sen)
     select id, company_id, 'payment_received', 1 from public.bookings limit 1;
     fails := fails + 1; report := report || E'FAIL customer inserted a ledger entry\n';
   exception when others then null; end;
 
   begin
-    update public.payments set status = 'succeeded' where customer_id = c1;
+    update public.payments set status = 'held' where customer_id = c1;
     get diagnostics got = row_count;
     if got <> 0 then fails := fails + 1; report := report || E'FAIL customer marked a payment paid\n'; end if;
   exception when others then null; end;
@@ -184,7 +184,7 @@ begin
   perform set_config('request.jwt.claim.sub', o11::text, true);
   set local role authenticated;
   begin
-    update public.bookings set total_sen = 1 where company_id not in (select company_id from public.company_members where user_id = o11);
+    update public.bookings set customer_notes = 'x' where company_id not in (select company_id from public.company_members where user_id = o11);
     get diagnostics got = row_count;
     if got <> 0 then fails := fails + 1; report := report || E'FAIL owner edited another company''s booking\n'; end if;
   exception when others then null; end;
@@ -194,7 +194,7 @@ begin
     if got <> 0 then fails := fails + 1; report := report || E'FAIL owner changed their own plan directly\n'; end if;
   exception when others then null; end;
   begin
-    update public.companies set status = 'approved' where id in (select company_id from public.company_members where user_id = o11);
+    update public.companies set status = 'verified' where id in (select company_id from public.company_members where user_id = o11);
     get diagnostics got = row_count;
     if got <> 0 then fails := fails + 1; report := report || E'FAIL owner approved their own company\n'; end if;
   exception when others then null; end;
