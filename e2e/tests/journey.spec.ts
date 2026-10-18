@@ -12,7 +12,8 @@ test.describe.serial("booking journey (sandbox payment)", () => {
     await login(page, USERS.customer);
     await page.goto("/contractors");
     await page.getByRole("link", { name: /Cool Breeze/i }).first().click();
-    await page.getByRole("link", { name: /book/i }).first().click();
+    await page.locator('a[href^="/book/"]').first().click();
+    await expect(page).toHaveURL(/\/book\//);
 
     // choose the first real service for each unit shown
     const selects = page.locator('select[name^="service_"]');
