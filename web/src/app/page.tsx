@@ -10,7 +10,7 @@ export default async function Home() {
   if (data.user) redirect("/units");
   const t = await getT();
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
+    <main id="main" className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
       <h1 className="text-4xl font-semibold tracking-tight">{t("appName")}</h1>
       <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">{t("tagline")}</p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">

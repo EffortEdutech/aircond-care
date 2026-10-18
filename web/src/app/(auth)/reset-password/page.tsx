@@ -11,7 +11,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps<"/re
   const { data } = await supabase.auth.getUser();
   const error = typeof params.error === "string" ? params.error : null;
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-10">
+    <main id="main" className="mx-auto w-full max-w-md px-4 py-10">
       <h1 className="mb-6 text-2xl font-semibold tracking-tight">Choose a new password</h1>
       {error ? <Notice kind="error">{error}</Notice> : null}
       {data.user ? (

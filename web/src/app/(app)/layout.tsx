@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/units" className="font-semibold tracking-tight">
             {t("appName")}
           </Link>
-          <nav className="flex flex-wrap items-center gap-1">
+          <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
             {ws.company ? (
               <Link href="/work" className={`${link} bg-sky-50 text-sky-900 dark:bg-sky-950 dark:text-sky-100`}>
                 Workspace
@@ -55,7 +55,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </header>
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">{children}</div>
+      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">{children}</main>
     </div>
   );
 }

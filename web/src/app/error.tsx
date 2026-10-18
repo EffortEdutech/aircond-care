@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
+    <main id="main" className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
       <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
       <p className="mt-3 text-zinc-600 dark:text-zinc-400">
         We could not load this page. Please try again. If it keeps happening, contact support and quote the reference below.

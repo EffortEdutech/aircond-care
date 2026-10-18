@@ -12,7 +12,7 @@ const LINKS = [
 
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-8">
+    <main id="main" className="mx-auto w-full max-w-2xl px-4 py-8">
       <Link href="/" className="text-sm text-sky-700 underline dark:text-sky-400">
         Aircond Care
       </Link>

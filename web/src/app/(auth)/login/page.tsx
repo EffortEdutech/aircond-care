@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const error = typeof params.error === "string" ? params.error : null;
   const notice = params.notice === "check-email";
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-10">
+    <main id="main" className="mx-auto w-full max-w-md px-4 py-10">
       <h1 className="mb-6 text-2xl font-semibold tracking-tight">{t("signIn")}</h1>
       {error ? <Notice kind="error">{error}</Notice> : null}
       {notice ? <Notice kind="info">{t("checkEmail")}</Notice> : null}
